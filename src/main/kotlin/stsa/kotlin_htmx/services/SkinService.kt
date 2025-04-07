@@ -9,6 +9,8 @@ import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import stsa.kotlin_htmx.external.dto.SkinDto
 import stsa.kotlin_htmx.utils.convertToDto
+import java.util.concurrent.TimeUnit
+import com.github.benmanes.caffeine.cache.Caffeine
 
 class SkinService(
     private val repository: SkinRepository
@@ -56,6 +58,17 @@ class SkinService(
         }
         builder.append("</skins>")
         return builder.toString()
+    }
+
+    private val skinCache = Caffeine.newBuilder()
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .build<String, List<SkinDto>>()
+
+
+    fun getSkinsByName(name: String): List<SkinDto> = skinCache.get(name) {
+        transaction {
+            repository.findByName(name).map { it.convertToDto() }
+        }
     }
 }
 

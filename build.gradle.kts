@@ -67,8 +67,12 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
     implementation("io.ktor:ktor-server-content-negotiation:2.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+
+    // Ktor Client Mock
     testImplementation("io.ktor:ktor-client-mock:2.3.4")
 
+    // Cache Caffeine
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
     implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
     implementation("org.glassfish.expressly:expressly:5.0.0")

@@ -33,6 +33,13 @@ fun Application.configureApiRoutes() {
                 call.respond(HttpStatusCode.OK, ApiResponse.success(data = skinsDto))
             }
 
+            get("/search") {
+                val search = call.request.queryParameters["search"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, ApiResponse.error<Unit>(message = "Missing search parameter"))
+                val skinsDto = skinService.getSkinsByName(search)
+                call.respond(HttpStatusCode.OK, ApiResponse.success(data = skinsDto))
+            }
+
             post("/export/XML") {
                 // Receive the JSON payload as ExportRequest
                 val skinExportRequestDto = call.receive<SkinExportRequestDto>()

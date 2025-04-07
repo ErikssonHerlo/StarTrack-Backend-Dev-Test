@@ -49,6 +49,11 @@ open class SkinRepository {
         SkinEntity.selectAll().count()
     }
 
+    fun findByName(name: String): List<Skin> = transaction {
+        SkinEntity.select { SkinEntity.name like "%$name%" }
+            .map { toSkin(it) }
+    }
+
     private fun toSkin(row: ResultRow): Skin {
         return Skin(
             id = row[SkinEntity.id],
