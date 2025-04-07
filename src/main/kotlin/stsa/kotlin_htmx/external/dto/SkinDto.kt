@@ -8,7 +8,7 @@ data class SkinDto(
     val name: String,
     val description: String? = null,
     // Only requested fields are included in the DTO to reduce payload size
-    val crates: List<CrateDto> = emptyList(),
+    val crates: List<SecondaryCrateDto> = emptyList(),
     val team: TeamDto? = null,
     val image: String? = null
 )

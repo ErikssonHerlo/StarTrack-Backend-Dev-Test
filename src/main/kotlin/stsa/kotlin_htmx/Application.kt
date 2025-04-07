@@ -13,10 +13,17 @@ import stsa.kotlin_htmx.routes.configurePageRoutes
 import stsa.kotlin_htmx.config.DatabaseConfig
 import java.io.File
 
-import stsa.kotlin_htmx.repositories.SkinRepository
-import stsa.kotlin_htmx.services.SkinService
 import stsa.kotlin_htmx.external.CSGOApiClient
 import stsa.kotlin_htmx.external.CSGOApiClientInterface
+import stsa.kotlin_htmx.repositories.SkinRepository
+import stsa.kotlin_htmx.services.SkinService
+import stsa.kotlin_htmx.repositories.AgentRepository
+import stsa.kotlin_htmx.repositories.CrateRepository
+import stsa.kotlin_htmx.services.AgentService
+import stsa.kotlin_htmx.services.CrateService
+import stsa.kotlin_htmx.repositories.KeyRepository
+import stsa.kotlin_htmx.services.KeyService
+
 
 data class ApplicationConfig(
     val lookupApiKey: String
@@ -62,7 +69,21 @@ suspend fun loadCSGOData() {
     val apiClient: CSGOApiClientInterface = CSGOApiClient()
     val skinService = SkinService(apiClient, SkinRepository())
     skinService.loadSkinsData()
+
+    // Load agents data
+    val agentService = AgentService(apiClient, AgentRepository())
+    agentService.loadAgentsData()
+
+    // Load crates data
+    val crateService = CrateService(apiClient, CrateRepository())
+    crateService.loadCrateData()
+
+    // Load keys data
+    val keyService = KeyService(apiClient, KeyRepository())
+    keyService.loadKeyData()
+
 }
+
 
 fun main() {
     // Configure the database connection & applied migrations

@@ -37,7 +37,7 @@ class SkinService(
                     id = dto.id,
                     name = dto.name,
                     description = dto.description,
-                    team = dto.team?.name, // Extract the team name if available
+                    team = Json.encodeToString(dto.team),
                     image = dto.image,
                     // Convert the list of crates to a comma-separated string
                     crates = Json.encodeToString(dto.crates)

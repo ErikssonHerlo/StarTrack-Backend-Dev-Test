@@ -1,7 +1,5 @@
--- V1__create_initial_schema.sql
 
--- Tabla para Skins
-CREATE TABLE IF NOT EXISTS skins (
+CREATE TABLE IF NOT EXISTS skin (
                                      id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -10,29 +8,25 @@ CREATE TABLE IF NOT EXISTS skins (
     crates TEXT
     );
 
--- Tabla para Agents
-CREATE TABLE IF NOT EXISTS agents (
+CREATE TABLE IF NOT EXISTS agent (
                                       id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     team VARCHAR(255),
-    image TEXT,
-    crates TEXT
-    );
-
--- Tabla para Crates
-CREATE TABLE IF NOT EXISTS crates (
-                                      id VARCHAR(255) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
     image TEXT
     );
 
--- Tabla para Keys
-CREATE TABLE IF NOT EXISTS keys (
+CREATE TABLE IF NOT EXISTS crate (
+                                      id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image TEXT
+    );
+
+CREATE TABLE IF NOT EXISTS key (
                                     id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    team VARCHAR(255),
     image TEXT,
     crates TEXT
     );

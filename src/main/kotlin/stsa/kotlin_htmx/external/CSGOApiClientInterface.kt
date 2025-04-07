@@ -1,8 +1,5 @@
 package stsa.kotlin_htmx.external
-import stsa.kotlin_htmx.external.dto.AgentDto
-import stsa.kotlin_htmx.external.dto.CrateDto
-import stsa.kotlin_htmx.external.dto.KeyDto
-import stsa.kotlin_htmx.external.dto.SkinDto
+import stsa.kotlin_htmx.external.dto.*
 
 /**
  * Interface for the CSGO API client.
@@ -11,6 +8,6 @@ import stsa.kotlin_htmx.external.dto.SkinDto
 interface CSGOApiClientInterface {
     suspend fun getSkins(): List<SkinDto>
     suspend fun getAgents(): List<AgentDto>
-    suspend fun getCrates(): List<CrateDto>
+    suspend fun getCrates(): List<PrincipalCrateDto>
     suspend fun getKeys(): List<KeyDto>
 }
