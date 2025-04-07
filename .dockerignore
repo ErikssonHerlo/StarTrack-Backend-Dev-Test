@@ -1,5 +1,4 @@
 # flyctl launch added from .gitignore
-**/.env.local
 **/.gradle
 **/build
 !**/gradle/wrapper/gradle-wrapper.jar

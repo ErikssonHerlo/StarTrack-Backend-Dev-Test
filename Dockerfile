@@ -11,9 +11,11 @@ COPY build.gradle.kts .
 COPY settings.gradle.kts .
 COPY gradle.properties .
 COPY src/ src/
+COPY .env.default .env.default
+COPY .env.local .env.local
 
 # Ejecutamos la compilación; se generará un fat jar en build/libs
-RUN ./gradlew clean build --no-daemon
+RUN ./gradlew clean build -x test --no-daemon --stacktrace
 
 # Etapa 2: Ejecución
 FROM openjdk:11-jre-slim
@@ -22,6 +24,9 @@ WORKDIR /app
 
 # Copiamos el jar generado en la etapa de compilación
 COPY --from=builder /home/gradle/project/build/libs/*.jar app.jar
+
+# Copiamos el archivo .env.local al contenedor
+COPY .env.local .env.local
 
 # Exponemos el puerto en el que corre la aplicación
 EXPOSE 8080

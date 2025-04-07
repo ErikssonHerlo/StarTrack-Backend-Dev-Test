@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - .env.local
     depends_on:
       - db
 
@@ -14,9 +14,9 @@ services:
     image: postgres:13
     restart: always
     env_file:
-      - .env
+      - .env.local
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
