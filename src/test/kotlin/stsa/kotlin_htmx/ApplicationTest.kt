@@ -8,25 +8,44 @@ import kotlin.test.assertEquals
 
 class ApplicationTest {
     @Test
-    fun testRoot() = testApplication {
-        application {
-            module()
+    fun testGetSkins() = testApplication {
+        application { module() }
+
+        val response = client.get("/api/v1/skins")
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
+    fun testGetAgents() = testApplication {
+        application { module() }
+
+        val response = client.get("/api/v1/agents")
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
+    fun testGetCrates() = testApplication {
+        application { module() }
+
+        val response = client.get("/api/v1/crates")
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
+    fun testUnauthorizedKeys() = testApplication {
+        application { module() }
+
+        val response = client.get("/api/v1/keys")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun testAuthorizedKeys() = testApplication {
+        application { module() }
+
+        val response = client.get("/api/v1/keys") {
+            header("Authorization", "Bearer secret")
         }
-        client.get("/skins").apply {
-            assertEquals(HttpStatusCode.OK, status)
-        }
-        client.get("/agents").apply {
-            assertEquals(HttpStatusCode.OK, status)
-        }
-        client.get("/crates").apply {
-            assertEquals(HttpStatusCode.OK, status)
-        }
-        client.get("/keys").apply {
-            assertEquals(HttpStatusCode.Unauthorized, status)
-        }
-        //TODO: <-- YOUR CODE HERE -> Use an authenticated client
-        client.get("/keys").apply {
-            assertEquals(HttpStatusCode.OK, status)
-        }
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 }

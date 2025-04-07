@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import stsa.kotlin_htmx.persistence.SkinEntity
 import stsa.kotlin_htmx.domain.models.Skin
+import stsa.kotlin_htmx.external.dto.SkinDto
 
 class SkinRepository {
 
@@ -58,4 +59,5 @@ class SkinRepository {
             crates = row[SkinEntity.crates]
         )
     }
+
 }

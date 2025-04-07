@@ -6,47 +6,47 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import stsa.kotlin_htmx.domain.models.Key
 import stsa.kotlin_htmx.external.CSGOApiClientInterface
+import stsa.kotlin_htmx.external.dto.KeyDto
 import stsa.kotlin_htmx.repositories.KeyRepository
+import stsa.kotlin_htmx.utils.convertToDto
 
 class KeyService(
-    private val apiClient: CSGOApiClientInterface,
     private val repository: KeyRepository
 ) {
     private val logger = LoggerFactory.getLogger(KeyService::class.java)
 
     /**
-     * Loads key data from the API if the key table is empty.
+     * Retrieves all keys from the database and converts them to KeyDto.
      */
-    suspend fun loadKeyData() {
-        try {
-            val count = repository.count()
-            if (count > 0) {
-                logger.info("The key table already contains data (count = $count). Skipping data load.")
-                return
-            }
-            logger.info("The key table is empty. Starting key data load...")
+    fun getAllKeys(): List<stsa.kotlin_htmx.external.dto.KeyDto> = transaction {
+        KeyRepository().findAll().map { it.convertToDto() }
+    }
 
-            val keysDto = apiClient.getKeys()
-            val keys: List<Key> = keysDto.map { dto ->
-                Key(
-                    id = dto.id,
-                    name = dto.name,
-                    description = dto.description,
-                    image = dto.image,
-                    // Convert the list of crates to a JSON string
-                    crates = Json.encodeToString(dto.crates)
-                )
+    /**
+     * Converts a list of KeyDto to an XML string.
+     */
+    fun keysExportToXmlFromRequest(keys: List<KeyDto>): String {
+        val builder = StringBuilder()
+        builder.append("<keys>")
+        for (key in keys) {
+            builder.append("<key>")
+            builder.append("<id>${key.id}</id>")
+            builder.append("<name>${key.name}</name>")
+            builder.append("<description>${key.description ?: ""}</description>")
+            builder.append("<image>${key.image ?: ""}</image>")
+            builder.append("<crates>")
+            key.crates.forEach { crate ->
+                builder.append("<crate>")
+                builder.append("<id>${crate.id}</id>")
+                builder.append("<name>${crate.name}</name>")
+                builder.append("<image>${crate.image ?: ""}</image>")
+                builder.append("</crate>")
             }
-
-            transaction {
-                keys.forEach { key ->
-                    repository.save(key)
-                    logger.info("Inserted key with id: ${key.id}")
-                }
-            }
-            logger.info("Key data load complete: Inserted ${keys.size} keys.")
-        } catch (e: Exception) {
-            logger.error("Error loading key data: ${e.message}", e)
+            builder.append("</crates>")
+            builder.append("</key>")
         }
+        builder.append("</keys>")
+        logger.info("Exported ${keys.size} keys to XML.")
+        return builder.toString()
     }
 }

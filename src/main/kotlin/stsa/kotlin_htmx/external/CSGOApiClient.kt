@@ -44,7 +44,7 @@ class CSGOApiClient : CSGOApiClientInterface {
         return json.decodeFromString(responseText)
     }
 
-    override suspend fun getCrates(): List<PrincipalCrateDto> {
+    override suspend fun getCrates(): List<CrateDto> {
         val url = "${AppConstants.BASE_URL}/crates.json"
         val response: HttpResponse = client.get(url) {
             header(HttpHeaders.Accept, ContentType.Application.Json)

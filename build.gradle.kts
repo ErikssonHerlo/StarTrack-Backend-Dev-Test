@@ -65,6 +65,8 @@ dependencies {
 
     // Ktor Client
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
+    implementation("io.ktor:ktor-server-content-negotiation:2.3.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 
 
     implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")

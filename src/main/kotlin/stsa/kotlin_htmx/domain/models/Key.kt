@@ -1,5 +1,8 @@
 package stsa.kotlin_htmx.domain.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Key(
     val id: String,
     val name: String,

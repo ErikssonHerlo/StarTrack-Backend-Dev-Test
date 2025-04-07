@@ -1,5 +1,7 @@
 package stsa.kotlin_htmx
 
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -16,13 +18,10 @@ import java.io.File
 import stsa.kotlin_htmx.external.CSGOApiClient
 import stsa.kotlin_htmx.external.CSGOApiClientInterface
 import stsa.kotlin_htmx.repositories.SkinRepository
-import stsa.kotlin_htmx.services.SkinService
 import stsa.kotlin_htmx.repositories.AgentRepository
 import stsa.kotlin_htmx.repositories.CrateRepository
-import stsa.kotlin_htmx.services.AgentService
-import stsa.kotlin_htmx.services.CrateService
 import stsa.kotlin_htmx.repositories.KeyRepository
-import stsa.kotlin_htmx.services.KeyService
+import stsa.kotlin_htmx.services.*
 
 
 data class ApplicationConfig(
@@ -67,20 +66,24 @@ fun envFile(): File {
 suspend fun loadCSGOData() {
     // Initialize Dependencies Injection
     val apiClient: CSGOApiClientInterface = CSGOApiClient()
-    val skinService = SkinService(apiClient, SkinRepository())
-    skinService.loadSkinsData()
+    val csgoService: CSGOService = CSGOService(
+        apiClient,
+        SkinRepository(),
+        CrateRepository(),
+        AgentRepository(),
+        KeyRepository()
+    )
+    // Load Skins data
+    csgoService.loadSkinsData()
 
-    // Load agents data
-    val agentService = AgentService(apiClient, AgentRepository())
-    agentService.loadAgentsData()
+    // Load Agents data
+    csgoService.loadAgentsData()
 
-    // Load crates data
-    val crateService = CrateService(apiClient, CrateRepository())
-    crateService.loadCrateData()
+    // Load Crates data
+    csgoService.loadCratesData()
 
-    // Load keys data
-    val keyService = KeyService(apiClient, KeyRepository())
-    keyService.loadKeyData()
+    // Load Keys data
+    csgoService.loadKeysData()
 
 }
 
@@ -92,6 +95,7 @@ fun main() {
     runBlocking {
         loadCSGOData()
     }
+
     // Have to do this before the rest of the loading of KTor. I guess it's because it does something fancy
     // with the classloader to be able to do hot reload.
     if (envFile().readText().contains("KTOR_DEVELOPMENT=true")) System.setProperty(
@@ -103,6 +107,9 @@ fun main() {
 
 fun Application.module() {
     configureHTTP()
+    install(ContentNegotiation) {
+        json() // default configuration; you can customize if needed
+    }
     configureMonitoring()
     configureRouting()
     configureApiRoutes()

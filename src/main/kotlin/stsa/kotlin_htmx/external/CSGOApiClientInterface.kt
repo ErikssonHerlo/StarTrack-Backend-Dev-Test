@@ -8,6 +8,6 @@ import stsa.kotlin_htmx.external.dto.*
 interface CSGOApiClientInterface {
     suspend fun getSkins(): List<SkinDto>
     suspend fun getAgents(): List<AgentDto>
-    suspend fun getCrates(): List<PrincipalCrateDto>
+    suspend fun getCrates(): List<CrateDto>
     suspend fun getKeys(): List<KeyDto>
 }
