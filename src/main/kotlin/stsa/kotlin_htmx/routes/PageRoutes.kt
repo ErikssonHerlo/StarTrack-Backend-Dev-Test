@@ -18,7 +18,7 @@ fun Application.configurePageRoutes() {
                     emptyContentWrapper {
                         section {
                             p {
-                                +"Startrack Demo"
+                                +"Startrack Backend Dev Test by Eriksson Hernández"
                             }
                         }
                     }
@@ -32,5 +32,26 @@ fun Application.configurePageRoutes() {
                 linkMainPage.renderMainPage(this)
             }
         }
+
+        route("/skins") {
+            val skinsPage = SkinsPage()
+            get { skinsPage.render(this) }
+        }
+
+        route("/agents") {
+            val agentsPage = AgentsPage()
+            get { agentsPage.render(this) }
+        }
+
+        route("/crates") {
+            val cratesPage = CratesPage()
+            get { cratesPage.render(this) }
+        }
+
+        route("/keys") {
+            val keysPage = KeysPage()
+            get { keysPage.render(this) }
+        }
+
     }
 }

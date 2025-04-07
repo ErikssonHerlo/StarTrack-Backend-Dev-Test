@@ -6,7 +6,7 @@ object SkinEntity : Table("skin") {
     val id = varchar("id", 255)
     val name = varchar("name", 255)
     val description = text("description").nullable()
-    val team = varchar("team", 255).nullable()
+    val team = text("team").nullable()
     val image = text("image").nullable()
     val crates = text("crates").nullable()
 

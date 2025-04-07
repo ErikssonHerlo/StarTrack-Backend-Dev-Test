@@ -7,7 +7,7 @@ import stsa.kotlin_htmx.persistence.SkinEntity
 import stsa.kotlin_htmx.domain.models.Skin
 import stsa.kotlin_htmx.external.dto.SkinDto
 
-class SkinRepository {
+open class SkinRepository {
 
     fun findAll(): List<Skin> = transaction {
         SkinEntity.selectAll().map { toSkin(it) }

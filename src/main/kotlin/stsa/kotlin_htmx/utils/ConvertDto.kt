@@ -23,8 +23,12 @@ fun Skin.convertToDto(): SkinDto {
     } ?: emptyList()
 
     // Wrap the team string into a TeamDto if available
-    val teamDto: TeamDto? = this.team?.let { teamName ->
-        TeamDto(id = "", name = teamName)
+    val teamDto: TeamDto? = this.team?.let { teamJsonString ->
+        try {
+            Json.decodeFromString<TeamDto>(teamJsonString) // Deserialize the team JSON string
+        } catch (e: Exception) {
+            null // If there's an error, return null (handle errors gracefully)
+        }
     }
 
     return SkinDto(
@@ -39,7 +43,13 @@ fun Skin.convertToDto(): SkinDto {
 
 fun Agent.convertToDto(): AgentDto {
     // Wrap the team name into a TeamDto if present; otherwise, null.
-    val teamDto = this.team?.let { TeamDto(id = "", name = it) }
+    val teamDto: TeamDto? = this.team?.let { teamJsonString ->
+        try {
+            Json.decodeFromString<TeamDto>(teamJsonString) // Deserialize the team JSON string
+        } catch (e: Exception) {
+            null // If there's an error, return null (handle errors gracefully)
+        }
+    }
     return AgentDto(
         id = this.id,
         name = this.name,

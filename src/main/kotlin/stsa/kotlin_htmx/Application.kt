@@ -25,7 +25,8 @@ import stsa.kotlin_htmx.services.*
 
 
 data class ApplicationConfig(
-    val lookupApiKey: String
+    val lookupApiKey: String,
+    val apiBaseUrl: String
 ) {
 
     companion object {
@@ -46,7 +47,8 @@ data class ApplicationConfig(
             }
 
             return ApplicationConfig(
-                lookupApiKey = envVars.envOrLookup("LOOKUP_API_KEY")
+                lookupApiKey = envVars.envOrLookup("LOOKUP_API_KEY"),
+                apiBaseUrl = envVars.envOrLookup("BASE_URL")
             )
         }
 
