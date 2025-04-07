@@ -1,4 +1,4 @@
-package stsa.kotlin_htmx
+package stsa.kotlin_htmx.utils
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1

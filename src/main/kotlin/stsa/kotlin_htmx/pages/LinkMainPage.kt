@@ -1,10 +1,8 @@
-package stsa.kotlin_htmx.link.pages
+package stsa.kotlin_htmx.pages
 
 import io.ktor.server.html.*
 import io.ktor.server.routing.RoutingContext
 import kotlinx.html.*
-import stsa.kotlin_htmx.pages.MainTemplate
-import stsa.kotlin_htmx.pages.SelectionTemplate
 import org.slf4j.LoggerFactory
 import kotlin.collections.set
 
