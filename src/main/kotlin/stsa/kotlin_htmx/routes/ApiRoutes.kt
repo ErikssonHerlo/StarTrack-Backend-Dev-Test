@@ -56,6 +56,13 @@ fun Application.configureApiRoutes() {
                 call.respond(HttpStatusCode.OK, ApiResponse.success(data = agentsDto))
             }
 
+            get("/search") {
+                val search = call.request.queryParameters["search"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, ApiResponse.error<Unit>(message = "Missing search parameter"))
+                val agentsDto = agentService.getAgentsByName(search)
+                call.respond(HttpStatusCode.OK, ApiResponse.success(data = agentsDto))
+            }
+
             // POST endpoint to export agents to XML
             post("/export/XML") {
                 // Receive the JSON payload containing a list of AgentDto
@@ -72,6 +79,14 @@ fun Application.configureApiRoutes() {
                 val cratesDto = crateService.getAllCrates()
                 call.respond(HttpStatusCode.OK, ApiResponse.success(data = cratesDto))
             }
+
+            get("/search") {
+                val search = call.request.queryParameters["search"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, ApiResponse.error<Unit>(message = "Missing search parameter"))
+                val cratesDto = crateService.getCratesByName(search)
+                call.respond(HttpStatusCode.OK, ApiResponse.success(data = cratesDto))
+            }
+
             post("/export/XML") {
                 val crateExportRequestDto = call.receive<CrateExportRequestDto>()
                 // Dado que el DTO ya es List<CrateDto>, se utiliza directamente:
@@ -100,12 +115,48 @@ fun Application.configureApiRoutes() {
                 }
             }
 
+            get("/search") {
+                // Protect the keys endpoint with authentication
+                val authHeader = call.request.headers["Authorization"]
+                if (authHeader == null || authHeader != "Bearer Token") {
+                    call.respond(
+                        HttpStatusCode.Unauthorized,
+                        ApiResponse.error<Unit>(
+                            message = "Unauthorized",
+                            errors = listOf("Missing or invalid token"),
+                            code = 401
+                        )
+                    )
+                } else {
+                    val search = call.request.queryParameters["search"]
+                        ?: return@get call.respond(
+                            HttpStatusCode.BadRequest,
+                            ApiResponse.error<Unit>(message = "Missing search parameter")
+                        )
+                    val keysDto = keyService.getKeysByName(search)
+                    call.respond(HttpStatusCode.OK, ApiResponse.success(data = keysDto))
+                }
+            }
+
             post("/export/XML") {
-                val keyExportRequestDto = call.receive<KeyExportRequestDto>()
-                val xmlOutput = KeyService(stsa.kotlin_htmx.repositories.KeyRepository())
-                    .keysExportToXmlFromRequest(keyExportRequestDto.data)
-                call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"keys_export.xml\"")
-                call.respondText(xmlOutput, ContentType.Text.Xml)
+                // Protect the keys endpoint with authentication
+                val authHeader = call.request.headers["Authorization"]
+                if (authHeader == null || authHeader != "Bearer Token") {
+                    call.respond(
+                        HttpStatusCode.Unauthorized,
+                        ApiResponse.error<Unit>(
+                            message = "Unauthorized",
+                            errors = listOf("Missing or invalid token"),
+                            code = 401
+                        )
+                    )
+                } else {
+                    val keyExportRequestDto = call.receive<KeyExportRequestDto>()
+                    val xmlOutput = KeyService(stsa.kotlin_htmx.repositories.KeyRepository())
+                        .keysExportToXmlFromRequest(keyExportRequestDto.data)
+                    call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"keys_export.xml\"")
+                    call.respondText(xmlOutput, ContentType.Text.Xml)
+                }
             }
         }
     }

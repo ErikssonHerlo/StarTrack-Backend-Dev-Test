@@ -31,6 +31,11 @@ class AgentRepository {
         AgentEntity.selectAll().count()
     }
 
+    fun findByName(name: String): List<Agent> = transaction {
+        AgentEntity.select { AgentEntity.name like "%$name%" }
+            .map { toAgent(it) }
+    }
+
     private fun toAgent(row: ResultRow): Agent = Agent(
         id = row[AgentEntity.id],
         name = row[AgentEntity.name],

@@ -50,8 +50,10 @@ open class SkinRepository {
     }
 
     fun findByName(name: String): List<Skin> = transaction {
-        SkinEntity.select { SkinEntity.name like "%$name%" }
+        val query = "%${name.lowercase()}%"
+        SkinEntity.select { SkinEntity.name.lowerCase() like query }
             .map { toSkin(it) }
+
     }
 
     private fun toSkin(row: ResultRow): Skin {

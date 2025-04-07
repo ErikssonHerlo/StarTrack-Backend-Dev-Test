@@ -1,5 +1,6 @@
 package stsa.kotlin_htmx.services
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -8,6 +9,7 @@ import stsa.kotlin_htmx.domain.models.Agent
 import stsa.kotlin_htmx.external.dto.AgentDto
 import stsa.kotlin_htmx.repositories.AgentRepository
 import stsa.kotlin_htmx.utils.convertToDto
+import java.util.concurrent.TimeUnit
 
 class AgentService(
     private val repository: AgentRepository
@@ -59,6 +61,28 @@ class AgentService(
         builder.append("</data>")
         logger.info("Exported ${agents.size} agents to XML.")
         return builder.toString()
+    }
+
+    /**
+     * Caches the agent data for 10 minutes to improve performance.
+     */
+    private val agentCache = Caffeine.newBuilder()
+        .maximumSize(50) // Maximum size of the cache
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .build<String, List<AgentDto>>()
+
+
+    /**
+     * Retrieves agents by name from the cache or database.
+     */
+    fun getAgentsByName(name: String): List<AgentDto> = agentCache.get(name) {
+        val normalized = name.trim().lowercase()
+
+        agentCache.get(normalized) {
+            transaction {
+                repository.findByName(normalized).map { it.convertToDto() }
+            }
+        }
     }
 
 }

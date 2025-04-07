@@ -17,6 +17,11 @@ class CrateRepository {
             .singleOrNull()
     }
 
+    fun findByName(name: String): List<Crate> = transaction {
+        CrateEntity.select { CrateEntity.name like "%$name%" }
+            .map { toCrate(it) }
+    }
+
     fun save(crate: Crate): Crate = transaction {
         CrateEntity.insert {
             it[id] = crate.id

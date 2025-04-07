@@ -17,6 +17,11 @@ class KeyRepository {
             .singleOrNull()
     }
 
+    fun findByName(name: String): List<Key> = transaction {
+        KeyEntity.select { KeyEntity.name like "%$name%" }
+            .map { toKey(it) }
+    }
+
     fun save(key: Key): Key = transaction {
         KeyEntity.insert {
             it[id] = key.id

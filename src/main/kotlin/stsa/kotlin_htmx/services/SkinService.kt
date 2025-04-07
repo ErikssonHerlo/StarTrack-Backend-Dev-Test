@@ -61,13 +61,18 @@ class SkinService(
     }
 
     private val skinCache = Caffeine.newBuilder()
+        .maximumSize(50) // Maximum size of the cache
         .expireAfterWrite(10, TimeUnit.MINUTES)
         .build<String, List<SkinDto>>()
 
 
     fun getSkinsByName(name: String): List<SkinDto> = skinCache.get(name) {
-        transaction {
-            repository.findByName(name).map { it.convertToDto() }
+        val normalized = name.trim().lowercase()
+
+        skinCache.get(normalized) {
+            transaction {
+                repository.findByName(normalized).map { it.convertToDto() }
+            }
         }
     }
 }
