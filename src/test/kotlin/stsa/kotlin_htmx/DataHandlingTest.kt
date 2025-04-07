@@ -1,9 +1,12 @@
 package stsa.kotlin_htmx
 
+import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.testing.testApplication
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.Test
 import org.xml.sax.InputSource
@@ -11,43 +14,64 @@ import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.assertEquals
 
-class DataHandlingTest {
+class CratesExportTest {
+    private val mockXmlResponse = """
+        <crates>
+            <crate>
+                <id>crate-1210</id>
+                <name>Paquete de regalo</name>
+                <description>Cuando se use, un jugador aleatorio de la partida recibirá un objeto aleatorio como regalo de tu parte.</description>
+                <image>https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapon_cases/gift1player_png.png</image>
+            </crate>
+        </crates>
+    """.trimIndent()
+
+    private val mockClient = io.ktor.client.HttpClient(MockEngine) {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
+        }
+        engine {
+            addHandler { request ->
+                if (request.method == HttpMethod.Post && request.url.encodedPath == "/api/v1/crates/export/XML") {
+                    respond(
+                        content = mockXmlResponse,
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "text/xml; charset=UTF-8")
+                    )
+                } else {
+                    respondBadRequest()
+                }
+            }
+        }
+    }
+
     @Test
-    fun shouldExportAgentsToXml() = testApplication {
-        application { module() }
-        // Example payload for agents export; it must match the expected SkinExportRequestDto or AgentExportRequestDto structure.
+    fun shouldExportCratesToXml() = runBlocking {
         val payload = """
             {
               "data": [
                 {
-                  "id": "agent-4613",
-                  "name": "Sr. Bloody Darryl El Preparado | Los Profesionales",
-                  "description": "Antes de convertirse en el líder de la banda de ladrones...",
-                  "team": {
-                    "id": "terrorists",
-                    "name": "Terrorista"
-                  },
-                  "image": "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/characters/customplayer_tm_professional_varf5_png.png",
-                  "crates": []
+                  "id": "crate-1210",
+                  "name": "Paquete de regalo",
+                  "description": "Cuando se use, un jugador aleatorio de la partida recibirá un objeto aleatorio como regalo de tu parte.",
+                  "image": "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/weapon_cases/gift1player_png.png"
                 }
               ]
             }
         """.trimIndent()
 
-        // Test the export endpoint for agents
-        val response = client.post("/api/v1/agents/export/XML") {
+        val response = mockClient.post("/api/v1/crates/export/XML") {
             contentType(ContentType.Application.Json)
             setBody(payload)
         }
+
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(ContentType.Text.Xml.withCharset(Charsets.UTF_8), response.contentType())
 
         val xml = response.bodyAsText()
-        // Validate XML structure by parsing it
         val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         val doc = db.parse(InputSource(StringReader(xml)))
         doc.documentElement.normalize()
-        // Check that the root element is "data"
-        assertEquals("agents", doc.documentElement.nodeName)
+        assertEquals("crates", doc.documentElement.nodeName)
     }
 }

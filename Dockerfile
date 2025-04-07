@@ -15,7 +15,7 @@ COPY .env.default .env.default
 COPY .env.local .env.local
 
 # Ejecutamos la compilación; se generará un fat jar en build/libs
-RUN ./gradlew clean build -x test --no-daemon --stacktrace
+RUN ./gradlew clean build --no-daemon --stacktrace
 
 # Etapa 2: Ejecución
 FROM openjdk:11-jre-slim
