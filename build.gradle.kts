@@ -9,6 +9,7 @@ plugins {
     id("io.ktor.plugin") version "3.0.1"
     id("com.github.ben-manes.versions") version "0.51.0"
     id("com.gradleup.shadow") version "8.3.5"
+    kotlin("plugin.serialization") version "1.8.10"
 }
 
 group = "stsa.kotlin-htmx"
@@ -50,6 +51,21 @@ dependencies {
     implementation("io.ktor:ktor-server-html-builder-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-sse:$ktorVersion")
     implementation("io.ktor:ktor-server-compression-jvm:$ktorVersion")
+
+    // Exposed ORM
+    implementation("org.jetbrains.exposed:exposed-core:0.41.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.41.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")
+
+    // PostgreSQL Driver
+    implementation("org.postgresql:postgresql:42.5.1")
+
+    // Flyway para migraciones
+    implementation("org.flywaydb:flyway-core:9.16.0")
+
+    // Ktor Client
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
+
 
     implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
     implementation("org.glassfish.expressly:expressly:5.0.0")

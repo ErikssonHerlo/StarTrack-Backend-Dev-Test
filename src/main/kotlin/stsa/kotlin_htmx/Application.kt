@@ -4,10 +4,19 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.compression.*
+import kotlinx.coroutines.runBlocking
 import stsa.kotlin_htmx.plugins.configureHTTP
 import stsa.kotlin_htmx.plugins.configureMonitoring
 import stsa.kotlin_htmx.plugins.configureRouting
+import stsa.kotlin_htmx.routes.configureApiRoutes
+import stsa.kotlin_htmx.routes.configurePageRoutes
+import stsa.kotlin_htmx.config.DatabaseConfig
 import java.io.File
+
+import stsa.kotlin_htmx.repositories.SkinRepository
+import stsa.kotlin_htmx.services.SkinService
+import stsa.kotlin_htmx.external.CSGOApiClient
+import stsa.kotlin_htmx.external.CSGOApiClientInterface
 
 data class ApplicationConfig(
     val lookupApiKey: String
@@ -44,7 +53,24 @@ fun envFile(): File {
     return listOf(".env.local", ".env.default").map { File(it) }.first { it.exists() }
 }
 
+/**
+ * This function is called when the application starts.
+ * It loads the data for CSGO skins, agents, crates, and keys.
+ */
+suspend fun loadCSGOData() {
+    // Initialize Dependencies Injection
+    val apiClient: CSGOApiClientInterface = CSGOApiClient()
+    val skinService = SkinService(apiClient, SkinRepository())
+    skinService.loadSkinsData()
+}
+
 fun main() {
+    // Configure the database connection & applied migrations
+    DatabaseConfig.init()
+
+    runBlocking {
+        loadCSGOData()
+    }
     // Have to do this before the rest of the loading of KTor. I guess it's because it does something fancy
     // with the classloader to be able to do hot reload.
     if (envFile().readText().contains("KTOR_DEVELOPMENT=true")) System.setProperty(
@@ -58,6 +84,7 @@ fun Application.module() {
     configureHTTP()
     configureMonitoring()
     configureRouting()
+    configureApiRoutes()
     install(Compression)
 
     // Manual dependency injection :) Usually smart to find a separate place to do this from KTor
