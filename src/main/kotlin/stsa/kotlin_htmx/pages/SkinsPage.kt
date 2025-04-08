@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.routing.*
 import kotlinx.html.*
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import stsa.kotlin_htmx.external.dto.SkinDto
 import stsa.kotlin_htmx.api.ApiResponse
@@ -26,27 +27,121 @@ class SkinsPage {
     }
 
     suspend fun render(ctx: RoutingContext) {
-        val response: HttpResponse = client.get("$baseUrl/api/v1/skins")
-        val json = Json.decodeFromString<ApiResponse<List<SkinDto>>>(response.bodyAsText())
+        val search = ctx.call.request.queryParameters["search"]
+        val url = if (!search.isNullOrBlank())
+            "$baseUrl/api/v1/skins/search?search=$search"
+        else
+            "$baseUrl/api/v1/skins"
 
-        ctx.call.respondHtmlTemplate(MainTemplate(template = SkinsTemplate(json.data ?: emptyList()), "Skins List")) {
-            mainSectionTemplate {
-                skinsListContent {}
+        val response: HttpResponse = client.get(url)
+        val json = Json.decodeFromString<ApiResponse<List<SkinDto>>>(response.bodyAsText())
+        val jsonString = Json.encodeToString(mapOf("data" to (json.data ?: emptyList())))
+
+        val isHtmx = ctx.call.request.headers["HX-Request"] == "true"
+
+        if (isHtmx) {
+            ctx.call.respondHtml {
+                body {
+                    for (skin in json.data.orEmpty()) {
+                        div("box") {
+                            h3 { +skin.name }
+                            skin.image?.let {
+                                img {
+                                    src = it
+                                    alt = skin.name
+                                    width = "200"
+                                }
+                            }
+                            skin.description?.let { p { +it } }
+                            skin.team?.let { p { +"Team: ${it.name}" } }
+                            if (skin.crates.isNotEmpty()) {
+                                ul {
+                                    p { +"Crates:" }
+                                    skin.crates.forEach { crate -> li { +crate.name } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            ctx.call.respondHtmlTemplate(
+                MainTemplate(
+                    template = SkinsTemplate(json.data ?: emptyList(), jsonString),
+                    pageTitle = "Skins List"
+                )
+            ) {
+                mainSectionTemplate {
+                    skinsListContent {}
+                }
             }
         }
     }
 }
 
-class SkinsTemplate(private val skins: List<SkinDto>) : Template<FlowContent> {
+class SkinsTemplate(private val skins: List<SkinDto>, private val jsonData: String) : Template<FlowContent> {
     val skinsListContent = Placeholder<FlowContent>()
 
     override fun FlowContent.apply() {
         h2 { +"List of Skins" }
+
+        form {
+            attributes["hx-get"] = "/skins"
+            attributes["hx-target"] = "#skinsResults"
+            attributes["hx-swap"] = "innerHTML"
+            input {
+                type = InputType.text
+                name = "search"
+                placeholder = "Search skins"
+            }
+            button {
+                type = ButtonType.submit
+                +"Search"
+            }
+        }
+
+        button {
+            attributes["data-json"] = jsonData.replace("\"", "&quot;")
+            onClick = "exportSkinsAsXml(this)"
+            +"Export as XML"
+        }
+
+        script {
+            unsafe {
+                +"""
+                    function exportSkinsAsXml(button) {
+                        const raw = button.getAttribute("data-json");
+                        const parsed = JSON.parse(raw.replace(/&quot;/g, '"'));
+                        
+                        fetch("/api/v1/skins/export/XML", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify(parsed)
+                        })
+                        .then(response => response.text())
+                        .then(xml => {
+                            const blob = new Blob([xml], { type: 'application/xml' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = 'skins.xml';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        });
+                    }
+                """.trimIndent()
+            }
+        }
+
         div {
-            skins.forEach { skin ->
+            id = "skinsResults"
+            insert(skinsListContent)
+            for (skin in skins) {
                 div("box") {
                     h3 { +skin.name }
-
                     skin.image?.let {
                         img {
                             src = it
@@ -54,28 +149,16 @@ class SkinsTemplate(private val skins: List<SkinDto>) : Template<FlowContent> {
                             width = "200"
                         }
                     }
-
-                    skin.description?.let {
-                        p { +it }
-                    }
-
-                    skin.team?.let {
-                        p { +"Team: ${it.name}" }
-                    }
-
+                    skin.description?.let { p { +it } }
+                    skin.team?.let { p { +"Team: ${it.name}" } }
                     if (skin.crates.isNotEmpty()) {
                         ul {
                             p { +"Crates:" }
-                            skin.crates.forEach { crate ->
-                                li {
-                                    +"${crate.name}"
-                                }
-                            }
+                            skin.crates.forEach { crate -> li { +crate.name } }
                         }
                     }
                 }
             }
         }
-        insert(skinsListContent)
     }
 }

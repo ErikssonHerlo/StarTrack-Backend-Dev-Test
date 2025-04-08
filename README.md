@@ -11,6 +11,7 @@ Este proyecto es una aplicación construida con **Ktor** y **HTMX** que consume 
 - 🏗️ **Exposed** (ORM de Kotlin) 
 - 🔗 **Flyway** (Migraciones de base de datos)
 - 🗃️ **PostgreSQL** (Base de datos relacional)
+- 🔄 **Caffeine Cache** (Cache en memoria)
 - 🐳 **Docker & Docker Compose**
 - 📦 **Gradle** (Gestor de dependencias y construcción)
 - 🧪 **JUnit + MockEngine** (Pruebas Unitarias)
@@ -71,22 +72,31 @@ http://localhost:8080
 
 ## 📡 Endpoints API
 
-| Endpoint                 | Método | Descripción                          |
-|--------------------------|--------|--------------------------------------|
-| `/api/v1/skins`          | GET    | Obtener todas las skins              |
-| `/api/v1/agents`         | GET    | Obtener todos los agentes            |
-| `/api/v1/crates`         | GET    | Obtener todas las cajas              |
-| `/api/v1/keys`           | GET    | Obtener todas las llaves (privado)   |
-| `/api/v1/skins/export/XML` | POST | Exportar skins a XML                 |
-| `/api/v1/agents/export/XML`| POST | Exportar agentes a XML               |
-| `/api/v1/crates/export/XML`| POST | Exportar cajas a XML                 |
-| `/api/v1/keys/export/XML`  | POST | Exportar llaves a XML                |
+| Endpoint                     | Método | Descripción                              |
+|------------------------------|--------|------------------------------------------|
+| `/api/v1/skins`              | GET    | Obtener todas las skins                  |
+| `/api/v1/agents`             | GET    | Obtener todos los agentes                |
+| `/api/v1/crates`             | GET    | Obtener todas las cajas                  |
+| `/api/v1/keys`               | GET    | Obtener todas las llaves (privado)       |
+| `/api/v1/skins/search`       | GET    | Buscar skins por nombre (`?search=...`)  |
+| `/api/v1/agents/search`      | GET    | Buscar agentes por nombre                |
+| `/api/v1/crates/search`      | GET    | Buscar cajas por nombre                  |
+| `/api/v1/keys/search`        | GET    | Buscar llaves por nombre                 |
+| `/api/v1/skins/export/XML`   | POST   | Exportar skins a XML                     |
+| `/api/v1/agents/export/XML`  | POST   | Exportar agentes a XML                   |
+| `/api/v1/crates/export/XML`  | POST   | Exportar cajas a XML                     |
+| `/api/v1/keys/export/XML`    | POST   | Exportar llaves a XML                    |
 
 🔐 Para acceder a `/api/v1/keys`, se necesita un token de autorización:
 ```
 Authorization: Bearer Token
 ```
 
+---
+## ⚡ Optimización con Caffeine Cache
+Para mejorar el rendimiento y evitar consultas repetidas a la base de datos, se implementó Caffeine Cache en los servicios. Cada búsqueda por nombre se guarda en caché durante 10 minutos, lo que reduce la latencia en búsquedas recurrentes.
+
+- Cada término de búsqueda se cachea individualmente como clave.
 ---
 
 ## 📥 Proceso de carga de datos
